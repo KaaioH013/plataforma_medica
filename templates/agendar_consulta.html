@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Agendar Consulta{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <h2 class="my-4">Agendar Nova Consulta</h2>
+            
+            <p>Selecione um dia e clique no horário desejado para agendar sua consulta.</p>
+
+            <div class="card p-4 shadow-sm mb-5">
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <a href="?dia={{ semana_anterior }}" class="btn btn-sm btn-info">&lt;&lt; Semana</a>
+                    <a href="?dia={{ data_anterior }}" class="btn btn-sm btn-outline-secondary">&lt; Dia</a>
+                    <h4 class="mb-0">{{ dia_atual|date:"d F Y" }}</h4>
+                    <a href="?dia={{ data_proxima }}" class="btn btn-sm btn-outline-secondary">Dia &gt;</a>
+                    <a href="?dia={{ semana_proxima }}" class="btn btn-sm btn-info">Semana &gt;&gt;</a>
+                </div>
+
+                <form id="formAgendamento" method="post">
+                    {% csrf_token %} 
+                    
+                    <div class="mb-3">
+                        {{ form.email_paciente.label_tag }}
+                        {{ form.email_paciente }}
+                        <div class="form-text">{{ form.email_paciente.help_text }}</div>
+                    </div>
+
+                    {{ form.slot_horario }}
+
+                    <p class="mt-4 fw-bold">Horários Disponíveis (Clique para selecionar):</p>
+                    
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        {% if disponibilidade %}
+                            {% for slot in disponibilidade %}
+                                <button type="button" 
+                                        class="btn btn-outline-success slot-btn" 
+                                        data-slot="{{ slot }}"
+                                        onclick="selecionarSlot('{{ slot }}')">
+                                    {{ slot }}
+                                </button>
+                            {% endfor %}
+                        {% else %}
+                            <p class="alert alert-warning w-100">
+                                Não há horários disponíveis neste dia ({{ dia_atual|date:"d/m" }}). Tente avançar para a próxima semana.
+                            </p>
+                        {% endif %}
+                    </div>
+                    
+                    <button id="btnSubmit" type="submit" class="btn btn-success w-100" disabled>
+                        Confirmar Agendamento
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function selecionarSlot(slot) {
+            // 1. Remove a seleção de todos os botões
+            document.querySelectorAll('.slot-btn').forEach(btn => {
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-outline-success');
+            });
+
+            // 2. Adiciona a seleção ao botão clicado
+            const clickedButton = document.querySelector(`[data-slot="${slot}"]`);
+            clickedButton.classList.remove('btn-outline-success');
+            clickedButton.classList.add('btn-success');
+            
+            // 3. Preenche o campo oculto 'slot_horario'
+            document.getElementById('id_slot_horario').value = slot;
+            
+            // 4. Habilita o botão de Submissão
+            document.getElementById('btnSubmit').disabled = false;
+        }
+    </script>
+    
+{% endblock content %}
